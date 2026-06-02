@@ -11,5 +11,5 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 mybatis:
-  mapper-locations: classpath:mybatis/mapper/*.xml
+  mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.food.model
