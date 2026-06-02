@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.food.mapper.OrderItemMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_item (order_id, menu_item_id, item_name, price, quantity, total_price)
+        VALUES (#{orderId}, #{menuItemId}, #{itemName}, #{price}, #{quantity}, #{totalPrice})
+    </insert>
+    <select id="selectByOrderId" resultType="com.food.entity.OrderItem">
+        SELECT * FROM order_item WHERE order_id = #{orderId}
+    </select>
+</mapper>
