@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/AddressMapper.xml" value="33fb171d-f191-49c0-95f5-e2ca9d85976a" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/CartMapper.xml" value="33fb171d-f191-49c0-95f5-e2ca9d85976a" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/DeliveryMapper.xml" value="33fb171d-f191-49c0-95f5-e2ca9d85976a" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/MenuItemMapper.xml" value="33fb171d-f191-49c0-95f5-e2ca9d85976a" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/MerchantMapper.xml" value="33fb171d-f191-49c0-95f5-e2ca9d85976a" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/OrderItemMapper.xml" value="33fb171d-f191-49c0-95f5-e2ca9d85976a" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/OrderMapper.xml" value="33fb171d-f191-49c0-95f5-e2ca9d85976a" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/OrderStatusLogMapper.xml" value="33fb171d-f191-49c0-95f5-e2ca9d85976a" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/RiderMapper.xml" value="33fb171d-f191-49c0-95f5-e2ca9d85976a" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/UserMapper.xml" value="33fb171d-f191-49c0-95f5-e2ca9d85976a" />
+  </component>
+</project>
