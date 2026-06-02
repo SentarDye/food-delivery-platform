@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.food.mapper.DeliveryMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO delivery (order_id, rider_id, pickup_time, delivery_time, status)
+        VALUES (#{orderId}, #{riderId}, #{pickupTime}, #{deliveryTime}, #{status})
+    </insert>
+
+    <select id="selectByOrderId" resultType="com.food.entity.Delivery">
+        SELECT * FROM delivery WHERE order_id = #{orderId}
+    </select>
+
+    <select id="selectById" resultType="com.food.entity.Delivery">
+        SELECT * FROM delivery WHERE id = #{id}
+    </select>
+
+    <update id="updateById">
+        UPDATE delivery
+        <set>
+            <if test="riderId != null">rider_id = #{riderId},</if>
+            <if test="pickupTime != null">pickup_time = #{pickupTime},</if>
+            <if test="deliveryTime != null">delivery_time = #{deliveryTime},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectPending" resultType="com.food.entity.Delivery">
+        SELECT * FROM delivery WHERE status = 0
+    </select>
+
+    <select id="selectByRiderId" resultType="com.food.entity.Delivery">
+        SELECT * FROM delivery WHERE rider_id = #{riderId} ORDER BY pickup_time DESC
+    </select>
+</mapper>
