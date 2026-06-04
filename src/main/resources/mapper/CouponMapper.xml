@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.food.mapper.CouponMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO coupon (merchant_id, name, type, discount, min_amount,
+                            total_quantity, user_limit, start_time, end_time)
+        VALUES (#{merchantId}, #{name}, #{type}, #{discount}, #{minAmount},
+                #{totalQuantity}, #{userLimit}, #{startTime}, #{endTime})
+    </insert>
+
+    <select id="selectById" resultType="com.food.entity.Coupon">
+        SELECT * FROM coupon WHERE id = #{id}
+    </select>
+
+    <select id="selectAvailable" resultType="com.food.entity.Coupon">
+        SELECT * FROM coupon
+        WHERE start_time &lt;= #{now} AND end_time &gt;= #{now}
+        <if test="merchantId != null">
+            AND (merchant_id = #{merchantId} OR merchant_id IS NULL)
+        </if>
+        <if test="merchantId == null">
+            AND merchant_id IS NULL
+        </if>
+    </select>
+
+    <update id="updateTotalQuantity">
+        UPDATE coupon SET total_quantity = total_quantity + #{delta}
+        WHERE id = #{id} AND total_quantity IS NOT NULL
+    </update>
+</mapper>
