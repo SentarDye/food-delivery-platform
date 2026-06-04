@@ -18,4 +18,6 @@ public interface OrderMapper {
                       @Param("deliveryTime") java.time.LocalDateTime deliveryTime,
                       @Param("completeTime") java.time.LocalDateTime completeTime,
                       @Param("cancelTime") java.time.LocalDateTime cancelTime);
+    void archiveCompletedOrders(@Param("beforeDate") java.time.LocalDateTime beforeDate);
+    void deleteArchivedOrders(@Param("beforeDate") java.time.LocalDateTime beforeDate);
 }

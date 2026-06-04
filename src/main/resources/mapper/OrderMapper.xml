@@ -31,4 +31,21 @@
         <if test="cancelTime != null">cancel_time = #{cancelTime},</if>
         id = #{id} WHERE id = #{id}
     </update>
+
+    <insert id="archiveCompletedOrders">
+        INSERT INTO orders_history (id, order_no, user_id, merchant_id, address_id,
+                                    total_amount, delivery_fee, discount_amount, final_amount, status,
+                                    pay_time, accept_time, delivery_time, complete_time, cancel_time,
+                                    remark, create_time, archive_time)
+        SELECT id, order_no, user_id, merchant_id, address_id,
+               total_amount, delivery_fee, discount_amount, final_amount, status,
+               pay_time, accept_time, delivery_time, complete_time, cancel_time,
+               remark, create_time, NOW()
+        FROM orders
+        WHERE status = 4 AND complete_time &lt; #{beforeDate}
+    </insert>
+
+    <delete id="deleteArchivedOrders">
+        DELETE FROM orders WHERE status = 4 AND complete_time &lt; #{beforeDate}
+    </delete>
 </mapper>
