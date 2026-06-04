@@ -20,10 +20,11 @@ public class OrderController extends BaseController {
     // 用户端：下单
     @PostMapping("/place")
     public Result placeOrder(@RequestParam Long addressId,
+                             @RequestParam(required = false) Long userCouponId,
                              @RequestParam(required = false) String remark,
                              HttpServletRequest request) {
         Long userId = getUserId(request);
-        return orderService.placeOrder(userId, addressId, remark);
+        return orderService.placeOrder(userId, addressId, userCouponId, remark);
     }
 
     // 用户端：支付

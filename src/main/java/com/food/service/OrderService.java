@@ -5,17 +5,22 @@ import com.food.common.Result;
 import com.food.entity.*;
 import com.food.enums.OrderStatus;
 import com.food.mapper.*;
+import com.food.strategy.CouponStrategy;
+import com.food.strategy.CouponStrategyContext;
 import com.food.strategy.OrderStateContext;
 import com.food.strategy.OrderStateStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class OrderService {
+    @Autowired
+    private CouponService couponService;
 
     @Autowired
     private CartMapper cartMapper;
@@ -31,6 +36,12 @@ public class OrderService {
     private OrderItemMapper orderItemMapper;
     @Autowired
     private OrderStatusLogMapper orderStatusLogMapper;
+
+    @Autowired
+    private CouponMapper couponMapper;
+
+    @Autowired
+    private CouponStrategyContext couponStrategyContext;
     @Autowired
     private OrderStateContext orderStateContext;
 
@@ -38,7 +49,7 @@ public class OrderService {
      * 从购物车下单（简单版，不考虑库存扣减和优惠券）
      */
     @Transactional
-    public Result placeOrder(Long userId, Long addressId, String remark) {
+    public Result placeOrder(Long userId, Long addressId, Long userCouponId, String remark) {
         // 1. 获取用户购物车
         List<Cart> cartItems = cartMapper.selectByUserId(userId);
         if (cartItems.isEmpty()) {
@@ -73,9 +84,36 @@ public class OrderService {
         // 5. 获取商家配送费
         Merchant merchant = merchantMapper.selectById(merchantId);
         BigDecimal deliveryFee = merchant.getDeliveryFee() != null ? merchant.getDeliveryFee() : BigDecimal.ZERO;
-        BigDecimal finalAmount = totalAmount.add(deliveryFee);
 
-        // 6. 创建订单
+        // 6. 获取折扣费用
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        if (userCouponId != null) {
+            // 校验优惠券归属、状态、门槛
+            UserCoupon userCoupon = couponService.getUserCouponById(userCouponId);
+            if (userCoupon == null || !userCoupon.getUserId().equals(userId) || userCoupon.getStatus() != 0) {
+                return Result.fail(400, "优惠券不可用");
+            }
+            Coupon coupon = couponMapper.selectById(userCoupon.getCouponId());  // 注意注入 couponMapper
+            if (coupon == null || LocalDateTime.now().isBefore(coupon.getStartTime())
+                    || LocalDateTime.now().isAfter(coupon.getEndTime())) {
+                return Result.fail(400, "优惠券无效或已过期");
+            }
+            // 适用性检查：平台券或此商家的券
+            if (coupon.getMerchantId() != null && !coupon.getMerchantId().equals(merchantId)) {
+                return Result.fail(400, "优惠券不适用于该商家");
+            }
+            // 计算折扣
+            CouponStrategy strategy = couponStrategyContext.getStrategy(coupon);
+            discountAmount = strategy.calculateDiscount(totalAmount, coupon);
+            if (discountAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                return Result.fail(400, "不满足优惠券使用条件");
+            }
+        }
+
+        BigDecimal finalAmount = totalAmount.add(deliveryFee).subtract(discountAmount);
+        if (finalAmount.compareTo(BigDecimal.ZERO) < 0) finalAmount = BigDecimal.ZERO;
+
+        // 7. 创建订单
         Order order = new Order();
         order.setOrderNo(UUID.randomUUID().toString().replace("-", "").substring(0, 16));
         order.setUserId(userId);
@@ -83,13 +121,13 @@ public class OrderService {
         order.setAddressId(addressId);
         order.setTotalAmount(totalAmount);
         order.setDeliveryFee(deliveryFee);
-        order.setDiscountAmount(BigDecimal.ZERO);
+        order.setDiscountAmount(discountAmount);
         order.setFinalAmount(finalAmount);
         order.setStatus(OrderStatus.PENDING_PAYMENT.getCode());
         order.setRemark(remark);
         orderMapper.insert(order);
 
-        // 7. 生成订单明细
+        // 8. 生成订单明细
         for (Cart cart : cartItems) {
             MenuItem menu = menuItemMapper.selectById(cart.getMenuItemId());
             OrderItem item = new OrderItem();
