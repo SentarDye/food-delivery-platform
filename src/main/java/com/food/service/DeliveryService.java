@@ -5,8 +5,8 @@ import com.food.common.Result;
 import com.food.entity.*;
 import com.food.enums.OrderStatus;
 import com.food.mapper.*;
-import com.food.strategy.OrderStateContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -21,10 +21,11 @@ public class DeliveryService {
     @Autowired
     private RiderMapper riderMapper;
     @Autowired
+    @Lazy   // 延迟注入打破循环依赖
     private OrderService orderService;
 
     /**
-     * 生成待接单配送单（商家接单后调用）
+     * 生成待接单配送单（商家接单后由 OrderService 调用）
      */
     public void createDelivery(Long orderId) {
         Delivery delivery = new Delivery();
@@ -54,8 +55,7 @@ public class DeliveryService {
             return Result.fail(400, "订单状态不可配送");
         }
 
-        // 绑定骑手，更新配送单状态为已取货？这里我们暂将status保持0，待取餐时改为1
-        // 根据流程：抢单后骑手去取餐，所以 delivery.status 仍为0，但 rider_id 已绑定
+        // 绑定骑手
         delivery.setRiderId(riderId);
         deliveryMapper.updateById(delivery);
 
@@ -120,10 +120,12 @@ public class DeliveryService {
     public Result getRiderStats(Long riderId) {
         List<Delivery> completed = deliveryMapper.selectByRiderId(riderId);
         long completedCount = completed.stream().filter(d -> d.getStatus() == 2).count();
-        // 后续可结合配送费计算收益
         return Result.success("完成单数: " + completedCount);
     }
 
+    /**
+     * 获取待抢配送单列表
+     */
     public Result getPendingDeliveries() {
         List<Delivery> list = deliveryMapper.selectPending();
         return Result.success(list);

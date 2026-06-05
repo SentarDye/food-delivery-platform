@@ -10,6 +10,7 @@ import com.food.strategy.CouponStrategyContext;
 import com.food.strategy.OrderStateContext;
 import com.food.strategy.OrderStateStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -21,6 +22,9 @@ import java.util.UUID;
 public class OrderService {
     @Autowired
     private CouponService couponService;
+    @Autowired
+    @Lazy
+    private DeliveryService deliveryService;
 
     @Autowired
     private CartMapper cartMapper;
@@ -149,15 +153,14 @@ public class OrderService {
         return Result.success(order);
     }
 
-    /**
-     * 通用状态变更方法，使用策略模式
-     */
     @Transactional
     public Result changeOrderStatus(Long orderId, OrderStatus targetStatus, String operator, String remark) {
         Order order = orderMapper.selectById(orderId);
         if (order == null) {
             return Result.fail(404, "订单不存在");
         }
+
+        Integer oldStatus = order.getStatus();
 
         // 获取对应状态的策略并执行
         OrderStateStrategy strategy = orderStateContext.getStrategy(targetStatus);
@@ -168,7 +171,13 @@ public class OrderService {
                 order.getAcceptTime(), order.getDeliveryTime(), order.getCompleteTime(), order.getCancelTime());
 
         // 记录日志
-        addStatusLog(orderId, order.getStatus(), targetStatus.getCode(), operator, remark);
+        addStatusLog(orderId, oldStatus, targetStatus.getCode(), operator, remark);
+
+        // 如果状态变更为“商家接单”，自动创建配送单
+        if (targetStatus == OrderStatus.ACCEPTED) {
+            deliveryService.createDelivery(order.getId());
+        }
+
         return Result.success("状态变更成功");
     }
 
