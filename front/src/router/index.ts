@@ -110,7 +110,7 @@ const router = createRouter({
 })
 
 // 路由守卫：需登录的页面检查token
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
     if (to.meta.noAuth) return next()
     if (to.path.startsWith('/merchant')) {
         const token = getToken('merchant_token')
